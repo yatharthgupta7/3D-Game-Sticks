@@ -29,13 +29,19 @@ public class Enemy_AI : MonoBehaviour
         _ramdompeople = Random.Range(0, _people.Length);
         transform.LookAt(_people[_ramdompeople].transform);
         transform.rotation = Quaternion.Euler(new Vector3(0, transform.eulerAngles.y, 0));
-        gunTransform.LookAt(_people[_ramdompeople].transform);      
+        gunTransform.LookAt(_people[_ramdompeople].transform.GetChild(2).gameObject.transform);      
     }
 
     // Update is called once per frame
     void Update()
     {
        shoot();
+    }
+
+    private void OnDrawGizmos()
+    {
+       // Gizmos.color = Color.red;
+        //Gizmos.DrawLine(gunTransform.position, _people[_ramdompeople].transform.GetChild(2).gameObject.transform.position);
     }
 
     void shoot()
@@ -47,17 +53,17 @@ public class Enemy_AI : MonoBehaviour
             {
                 transform.LookAt(_people[_ramdompeople].transform);
                 transform.rotation = Quaternion.Euler(new Vector3(0, transform.eulerAngles.y, 0));
-                gunTransform.LookAt(_people[_ramdompeople].transform);
+                gunTransform.LookAt(_people[_ramdompeople].transform.GetChild(2).gameObject.transform);
             }
         }
 
         if (_people[_ramdompeople] != null)
         {
-            gunTransform.LookAt(_people[_ramdompeople].transform);
-           if(_remainingbullet <=0)
-           {
+            gunTransform.LookAt(_people[_ramdompeople].transform.GetChild(2).gameObject.transform);
+            if (_remainingbullet <=0)
+            {
              Invoke("reload", 2);
-           }
+            }
 
            RaycastHit hit;
 
