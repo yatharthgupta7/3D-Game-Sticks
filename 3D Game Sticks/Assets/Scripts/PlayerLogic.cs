@@ -43,8 +43,11 @@ public class PlayerLogic : MonoBehaviour
 
     void Start()
     {
-        currentGun--;
-        SwitchGun();
+        //currentGun--;
+        //SwitchGun();
+        activeGun = allGuns[PlayerPrefs.GetInt("LastSelectedGun") - 1];
+        activeGun.gameObject.SetActive(true);
+
 
         gunStartPos = gunHolder.localPosition;
     }

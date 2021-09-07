@@ -26,16 +26,20 @@ public class Enemy_AI : MonoBehaviour
     {
         _people = GameObject.FindGameObjectsWithTag(peopleTag);
         _remainingbullet = bulletAtOnce;
-        _ramdompeople = Random.Range(0, _people.Length);
-        transform.LookAt(_people[_ramdompeople].transform);
-        transform.rotation = Quaternion.Euler(new Vector3(0, transform.eulerAngles.y, 0));
-        gunTransform.LookAt(_people[_ramdompeople].transform);      
+        if (_people.Length > 0)
+        {
+            _ramdompeople = Random.Range(0, _people.Length);
+            transform.LookAt(_people[_ramdompeople].transform);
+            transform.rotation = Quaternion.Euler(new Vector3(0, transform.eulerAngles.y, 0));
+            gunTransform.LookAt(_people[_ramdompeople].transform);
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-       shoot();
+        if(_people.Length>0)
+            shoot();
     }
 
     void shoot()
