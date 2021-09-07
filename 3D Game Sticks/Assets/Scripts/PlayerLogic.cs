@@ -1,11 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SimpleInputNamespace;
+using UnityStandardAssets.CrossPlatformInput;
+using UnityEngine.EventSystems;
 
 public class PlayerLogic : MonoBehaviour
 {
 
     public static PlayerLogic instance;
+
+    public FixedJoystick joystick;
 
     public float moveSpeed, jumpPower, gravityModifier,runSpeed = 12f;
     public CharacterController charChon;
@@ -51,8 +56,8 @@ public class PlayerLogic : MonoBehaviour
         //store y velocity
         float yStore = moveInput.y;
 
-        Vector3 vertMove = transform.forward * Input.GetAxis("Vertical") ;
-        Vector3 horiMove = transform.right * Input.GetAxis("Horizontal");
+        Vector3 vertMove = transform.forward * joystick.Vertical ;
+        Vector3 horiMove = transform.right * joystick.Horizontal;
 
         moveInput = horiMove + vertMove;
         moveInput.Normalize();
@@ -82,7 +87,7 @@ public class PlayerLogic : MonoBehaviour
         }
 
         //Handle Jumping
-        if (Input.GetKeyDown(KeyCode.Space) && canJump)
+        if (/*Input.GetKeyDown(KeyCode.Space)*/ CrossPlatformInputManager.GetButton("Jump") && canJump)
         {
             moveInput.y = jumpPower;
 
@@ -90,7 +95,7 @@ public class PlayerLogic : MonoBehaviour
 
             //AudioManager.instance.PlaySFX(8);
         }
-        else if (canDoubleJump && Input.GetKeyDown(KeyCode.Space))
+        else if (canDoubleJump && /*Input.GetKeyDown(KeyCode.Space)*/ CrossPlatformInputManager.GetButton("Jump"))
         {
             moveInput.y = jumpPower;
 
@@ -101,7 +106,14 @@ public class PlayerLogic : MonoBehaviour
 
         charChon.Move(moveInput * Time.deltaTime);
         //camera rotation
-        Vector2 mouseInput=new Vector2(Input.GetAxisRaw("Mouse X"),Input.GetAxisRaw("Mouse Y"));
+        Vector2 mouseInput = new Vector2(); //= new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase==TouchPhase.Moved)
+        {
+            if (EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+                return;
+            mouseInput.x = Input.GetTouch(0).deltaPosition.x;
+            mouseInput.y = Input.GetTouch(0).deltaPosition.y;
+        }
         if(invertX)
         {
             mouseInput.x = -mouseInput.x;
@@ -110,14 +122,15 @@ public class PlayerLogic : MonoBehaviour
         {
             mouseInput.y = -mouseInput.y;
         }
-        transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y + mouseInput.x, transform.rotation.eulerAngles.z);
-        cameraTrans.rotation = Quaternion.Euler(cameraTrans.transform.rotation.eulerAngles + new Vector3(-mouseInput.y, 0f, 0f));
+        transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y + mouseInput.x*mouseSentivity, transform.rotation.eulerAngles.z);
+        cameraTrans.rotation = Quaternion.Euler(cameraTrans.transform.rotation.eulerAngles + new Vector3(-mouseInput.y*mouseSentivity, 0f, 0f));
 
         muzzleFlash.SetActive(false);
 
         //Handle Shooting
         //single shots
-        if (Input.GetMouseButtonDown(0) && activeGun.fireCounter <= 0)
+        bool isShooting = CrossPlatformInputManager.GetButton("Shoot");
+        if (/*Input.GetMouseButtonDown(0)*/ isShooting && activeGun.fireCounter <= 0)
         {
             RaycastHit hit;
             if (Physics.Raycast(cameraTrans.position, cameraTrans.forward, out hit, 50f))
@@ -136,7 +149,7 @@ public class PlayerLogic : MonoBehaviour
         }
 
         //repeating shots
-        if (Input.GetMouseButton(0) && activeGun.canAutoFire)
+        if (/*Input.GetMouseButtonDown(0)*/ isShooting && activeGun.canAutoFire)
         {
             if (activeGun.fireCounter <= 0)
             {
@@ -144,7 +157,7 @@ public class PlayerLogic : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Tab))
+        if (CrossPlatformInputManager.GetButtonDown("Switch Gun"))
         {
             SwitchGun();
         }
@@ -154,13 +167,14 @@ public class PlayerLogic : MonoBehaviour
         {
             SwitchGun();
         }
-
-        if (Input.GetMouseButtonDown(1))
+        bool isScoping = CrossPlatformInputManager.GetButton("Scope");
+        if (isScoping)//Input.GetMouseButtonDown(1))
         {
+
             CameraLogic.instance.ZoomIn(activeGun.zoomAmount);
         }
 
-        if (Input.GetMouseButton(1))
+        if (isScoping)//Input.GetMouseButtonDown(1))Input.GetMouseButton(1))
         {
             gunHolder.position = Vector3.MoveTowards(gunHolder.position, adsPoint.position, adsSpeed * Time.deltaTime);
         }
@@ -169,7 +183,7 @@ public class PlayerLogic : MonoBehaviour
             gunHolder.localPosition = Vector3.MoveTowards(gunHolder.localPosition, gunStartPos, adsSpeed * Time.deltaTime);
         }
 
-        if (Input.GetMouseButtonUp(1))
+        if (!isScoping)//Input.GetMouseButtonDown(1))Input.GetMouseButtonUp(1))
         {
             CameraLogic.instance.ZoomOut();
         }
