@@ -10,35 +10,32 @@ public class Enemy_AI : MonoBehaviour
     public float reloadTime;
     [Tooltip("Gun refrence")]
     public Transform gunTransform;
+    [Tooltip("Fire Point of gun")]
+    public Transform firePointTransform;
     [Tooltip("How many bullet enemy get in one time")]
     public int bulletAtOnce;
     [Tooltip("Damage this character can give to other character")]
     public int Damage;
     [Tooltip("How much time will there between two fire")]
     public float waitTime;
+    [Tooltip("People Layer Mask")]
+    public LayerMask peopleLayerMask;
 
     private GameObject[] _people;
     private int _ramdompeople;
     private float _timetofire = 0;
     private int _remainingbullet;
+    private Vector3 dir;
 
     void Start()
     {
-        _people = GameObject.FindGameObjectsWithTag(peopleTag);
-        _remainingbullet = bulletAtOnce;
-        if (_people.Length > 0)
-        {
-            _ramdompeople = Random.Range(0, _people.Length);
-            transform.LookAt(_people[_ramdompeople].transform);
-            transform.rotation = Quaternion.Euler(new Vector3(0, transform.eulerAngles.y, 0));
-            gunTransform.LookAt(_people[_ramdompeople].transform);
-        }
+        lookAt();
     }
 
     // Update is called once per frame
     void Update()
-    {
-        if(_people.Length>0)
+    { 
+        if (_people.Length>0)
             shoot();
     }
 
@@ -60,20 +57,36 @@ public class Enemy_AI : MonoBehaviour
             gunTransform.LookAt(_people[_ramdompeople].transform);
            if(_remainingbullet <=0)
            {
-             Invoke("reload", 2);
+             Invoke("reload", reloadTime);
            }
 
            RaycastHit hit;
-
-           if (Physics.Raycast(gunTransform.position, gunTransform.forward, out hit) && _timetofire <= Time.time)
+           //dir = (_people[_ramdompeople].transform.position - firePointTransform.transform.position).normalized;
+            
+           if (Physics.Raycast(firePointTransform.position, firePointTransform.forward, out hit , peopleLayerMask) && _timetofire <= Time.time)
            {
               _remainingbullet--;
-              if (hit.transform.gameObject.tag == peopleTag)
+              Debug.DrawRay(firePointTransform.position, firePointTransform.forward * 1000, Color.red);
+              if (hit.transform.gameObject.tag != null)
               {
-                hit.transform.gameObject.GetComponent<Health>().Damage(Damage);
+                 if(hit.transform.gameObject.tag == peopleTag)
+                    hit.transform.gameObject.GetComponent<Health>().Damage(Damage);
               }
              _timetofire = waitTime + Time.time;
            }
+        }
+    }
+
+    void lookAt()
+    {
+        _people = GameObject.FindGameObjectsWithTag(peopleTag);
+        _remainingbullet = bulletAtOnce;
+        if (_people.Length > 0)
+        {
+            _ramdompeople = Random.Range(0, _people.Length);
+            transform.LookAt(_people[_ramdompeople].transform);
+            transform.rotation = Quaternion.Euler(new Vector3(0, transform.eulerAngles.y, 0));
+            gunTransform.LookAt(_people[_ramdompeople].transform);
         }
     }
 
