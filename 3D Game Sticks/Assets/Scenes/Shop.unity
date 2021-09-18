@@ -1318,7 +1318,7 @@ MonoBehaviour:
     m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: "You does not have enough coins to unlocked\n                         this
-    player."
+    Gun."
 --- !u!222 &1221367218
 CanvasRenderer:
   m_ObjectHideFlags: 0
